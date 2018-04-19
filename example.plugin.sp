@@ -20,6 +20,7 @@ public void OnMapStart()
     PrecacheModel(ARMS,  true);
 }
 
+// In this forward, there's no necessary for check if in-game player is alive.
 public Action ArmsFix_OnSpawnModel(int client, char[] model, int modelLen, char[] arms, int armsLen)
 {
     switch (results)
