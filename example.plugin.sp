@@ -20,26 +20,26 @@ public void OnMapStart()
     PrecacheModel(ARMS,  true);
 }
 
-// in this forward, we dont need check player ig-game or alive
+// In this forward, there's no necessary for check if in-game player is alive.
 public Action ArmsFix_OnSpawnModel(int client, char[] model, int modelLen, char[] arms, int armsLen)
 {
     switch (results)
     {
         case 1: 
         {
-            // we do nothing... player use map`s default model.
+            // Do nothing... But let players uses map`s default model.
             return Plugin_Continue;
         }
         case 2:
         {
-            // we change player`s model and arms;
+            // We changed player`s model and arms here;
             strcopy(model, modelLen, MODEL);
             strcopy(arms,  armsLen,  ARMS);
             return Plugin_Changed;
         }
         case 3:
         {
-            // we do nothing... player uses ctm_st6(CT side) or tm_phoenix(T side) by default.
+            // Do nothing... But let players uses ctm_st6(CT side) or tm_phoenix(T side) by default.
             return Plugin_Handled;
         }
     }
@@ -47,12 +47,12 @@ public Action ArmsFix_OnSpawnModel(int client, char[] model, int modelLen, char[
     return Plugin_Continue;
 }
 
-// in this forward, we dont need check player ig-game or alive
+// In this forward, there's no necessary for check if in-game player is alive.
 public void ArmsFix_OnArmsFixed(int client)
 {
     if(results == 3)
     {
-        // we manual change player`s model
+        // We changed player`s model manually.
         SetEntityModel(client, MODEL);
         SetEntPropString(client, Prop_Send, "m_szArmsModel", ARMS);
     }
@@ -64,7 +64,7 @@ public void Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
     if(!ClientIsAlive(client))
         return;
 
-    // check status
+    // Check status
     if(ArmsFix_ModelSafe(client))
     {
         SetEntityModel(client, MODEL);
