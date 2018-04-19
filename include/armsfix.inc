@@ -15,15 +15,15 @@ public SharedPlugin __pl_arms_fix =
 #endif
 };
 
-native bool ArmsFix_ModelSafe(int client); // true = arms has been fixed = 手臂已经修复
+native bool ArmsFix_ModelSafe(int client); // True = Arms has been fixed
 
-// called on spawn model. = 
-// Plugin_Continue = set client model and arms to default. = 设定客户端到默认模型及手臂模型
-// Plugin_Changed = set client model and arms to custom model. = 设定客户端到自定义模型及手臂模型
-// Plugin_Handled = do nothing -> direct fix. 啥也不做，直接修复
-// Plugin_Stop = do nothing -> direct fix. 啥也不做，直接修复
-// !!!this call only exec last!!! 这只能在exec最后才能调用
+// Called when spawn model.
+// Plugin_Continue = Set client model and arms to default - ctm_st6 for CTs, tm_phoenix for Ts.
+// Plugin_Changed = Set client model and arms to custom model.
+// Plugin_Handled = Nothing happen -> Fix directly.
+// Plugin_Stop = Nothing happen -> Fix directly
+// Attention!!! This call only run at the end of exec !!!
 forward Action ArmsFix_OnSpawnModel(int client, char[] model, int modelLen, char[] arms, int armsLen);
 
-// called on arms fixed. 修复手臂后调用
+// Called on when arms fixed.
 forward void ArmsFix_OnArmsFixed(int client);
