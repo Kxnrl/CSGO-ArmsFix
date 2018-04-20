@@ -17,7 +17,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#include <smutils>
+#include <smutils/smutils>
 #include <armsfix>
 
 #define PI_NAME "[CSGO] Arms Fix"
