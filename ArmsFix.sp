@@ -23,7 +23,7 @@
 #define PI_NAME "[CSGO] Arms Fix"
 #define PI_AUTH "Kyle"
 #define PI_DESC "Fix csgo glove overlap on custom arms"
-#define PI_VERS "1.0"
+#define PI_VERS "1.1"
 #define PI_URLS "https://kxnrl.com"
 
 public Plugin myinfo = 
@@ -46,6 +46,8 @@ static Handle g_fwdOnArmsFixed;
 
 static bool g_bArmsFixed[MAXPLAYERS+1];
 
+static int g_iFileTime;
+
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
@@ -61,7 +63,7 @@ public int IamNative(Handle plugin, int numParams)
     int client = GetNativeCell(1);
     if(!ClientIsValid(client))
     {
-        ThrowNativeError(SP_ERROR_PARAM, "client %d is invalid.");
+        ThrowNativeError(SP_ERROR_PARAM, "client %d is invalid.", client);
         return false;
     }
 
@@ -150,6 +152,11 @@ static void LoadMapKV()
 
 static void CheckGameModes()
 {
+    if(GetFileTime("gamemodes_server.txt", FileTime_LastChange) == g_iFileTime)
+    {
+        return;
+    }
+    
     KeyValues kv = new KeyValues("GameModes_Server.txt");
     
     if(FileExists("gamemodes_server.txt"))
@@ -220,6 +227,8 @@ static void CheckGameModes()
     
     delete hDir;
     delete kv;
+    
+    g_iFileTime = GetFileTime("gamemodes_server.txt", FileTime_LastChange);
 }
 
 public void OnClientConnected(int client)
