@@ -17,13 +17,13 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#include <smutils/smutils>
+#include <smutils>
 #include <armsfix>
 
 #define PI_NAME "[CSGO] Arms Fix"
 #define PI_AUTH "Kyle"
 #define PI_DESC "Fix csgo glove overlap on custom arms"
-#define PI_VERS "1.1"
+#define PI_VERS "1.2"
 #define PI_URLS "https://kxnrl.com"
 
 public Plugin myinfo = 

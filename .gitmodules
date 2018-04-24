@@ -1,3 +1,0 @@
-[submodule "include/smutils"]
-	path = include/smutils
-	url = git://github.com/Kxnrl/sourcemod-utils.git
