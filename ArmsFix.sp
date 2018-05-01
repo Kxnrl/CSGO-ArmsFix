@@ -23,7 +23,7 @@
 #define PI_NAME "[CSGO] Arms Fix"
 #define PI_AUTH "Kyle"
 #define PI_DESC "Fix csgo glove overlap on custom arms"
-#define PI_VERS "1.2"
+#define PI_VERS "1.3"
 #define PI_URLS "https://kxnrl.com"
 
 public Plugin myinfo = 
@@ -38,10 +38,10 @@ public Plugin myinfo =
 #define TEAM_TE 0
 #define TEAM_CT 1
 
-static char g_szCurMapModel[2][128];
+static char g_szCurMapSkin[2][128];
 static char g_szCurMapArms[2][128];
 
-static Handle g_fwdOnSpawnModel;
+static Handle g_fwdOnSpawnSkin;
 static Handle g_fwdOnArmsFixed;
 
 static bool g_bArmsFixed[MAXPLAYERS+1];
@@ -61,7 +61,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public int IamNative(Handle plugin, int numParams)
 {
     int client = GetNativeCell(1);
-    if(!ClientIsValid(client))
+    if(!ClientIsValid(client, true))
     {
         ThrowNativeError(SP_ERROR_PARAM, "client %d is invalid.", client);
         return false;
@@ -72,8 +72,8 @@ public int IamNative(Handle plugin, int numParams)
 
 public void OnPluginStart()
 {
-    g_fwdOnSpawnModel = CreateGlobalForward("ArmsFix_OnSpawnModel", ET_Single, Param_Cell, Param_String, Param_Cell, Param_String, Param_Cell);
-    g_fwdOnArmsFixed  = CreateGlobalForward("ArmsFix_OnArmsFixed",  ET_Ignore, Param_Cell);
+    g_fwdOnSpawnSkin = CreateGlobalForward("ArmsFix_OnSpawnModel", ET_Single, Param_Cell, Param_String, Param_Cell, Param_String, Param_Cell);
+    g_fwdOnArmsFixed = CreateGlobalForward("ArmsFix_OnArmsFixed",  ET_Ignore, Param_Cell);
 
     if(!HookEventEx("player_spawn", Event_PlayerSpawn, EventHookMode_Post))
     {
@@ -88,18 +88,18 @@ public void OnPluginStart()
 
 public void OnMapStart()
 {
-    strcopy(g_szCurMapModel[TEAM_TE], 128, "models/player/custom_player/legacy/tm_phoenix.mdl");
-    strcopy(g_szCurMapModel[TEAM_CT], 128, "models/player/custom_player/legacy/ctm_st6.mdl");
+    strcopy(g_szCurMapSkin[TEAM_TE], 128, "models/player/custom_player/legacy/tm_phoenix.mdl");
+    strcopy(g_szCurMapSkin[TEAM_CT], 128, "models/player/custom_player/legacy/ctm_st6.mdl");
     
-    strcopy(g_szCurMapArms[TEAM_TE],  128, "models/weapons/t_arms.mdl");
-    strcopy(g_szCurMapArms[TEAM_CT],  128, "models/weapons/ct_arms.mdl");
+    strcopy(g_szCurMapArms[TEAM_TE], 128, "models/weapons/t_arms.mdl");
+    strcopy(g_szCurMapArms[TEAM_CT], 128, "models/weapons/ct_arms.mdl");
 
     LoadMapKV();
-    
-    PrecacheModel(g_szCurMapModel[TEAM_TE], true);
-    PrecacheModel(g_szCurMapModel[TEAM_CT], true);
-    PrecacheModel(g_szCurMapArms[TEAM_TE],  true);
-    PrecacheModel(g_szCurMapArms[TEAM_CT],  true);
+
+    PrecacheModel(g_szCurMapSkin[TEAM_TE], true);
+    PrecacheModel(g_szCurMapSkin[TEAM_CT], true);
+    PrecacheModel(g_szCurMapArms[TEAM_TE], true);
+    PrecacheModel(g_szCurMapArms[TEAM_CT], true);
 }
 
 public void OnMapEnd()
@@ -121,7 +121,7 @@ static void LoadMapKV()
         delete kv;
         return;
     }
-    
+
     kv.GetString("t_arms",  g_szCurMapArms[TEAM_TE], 128, "models/weapons/t_arms.mdl");
     kv.GetString("ct_arms", g_szCurMapArms[TEAM_CT], 128, "models/weapons/ct_arms.mdl");
 
@@ -131,7 +131,7 @@ static void LoadMapKV()
         if(kv.GetSectionName(model, 128) && strlen(model) > 3)
         {
             Format(model, 128, "models/player/custom_player/legacy/%s.mdl", model);
-            StringToLower(model, g_szCurMapModel[TEAM_TE], 128);
+            StringToLower(model, g_szCurMapSkin[TEAM_TE], 128);
         }
     }
 
@@ -143,7 +143,7 @@ static void LoadMapKV()
         if(kv.GetSectionName(model, 128) && strlen(model) > 3)
         {
             Format(model, 128, "models/player/custom_player/legacy/%s.mdl", model);
-            StringToLower(model, g_szCurMapModel[TEAM_CT], 128);
+            StringToLower(model, g_szCurMapSkin[TEAM_CT], 128);
         }
     }
 
@@ -156,7 +156,7 @@ static void CheckGameModes()
     {
         return;
     }
-    
+
     KeyValues kv = new KeyValues("GameModes_Server.txt");
     
     if(FileExists("gamemodes_server.txt"))
@@ -249,18 +249,18 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 public Action Timer_SpawnPost(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
-    if(!ClientIsAlive(client))
+    if(!ClientIsAlive(client, true))
         return Plugin_Stop;
 
     Action result = Plugin_Continue;
     
-    char model[128], arms[128];
-    strcopy(model, 128, g_szCurMapModel[GetClientTeam(client)-2]);
-    strcopy(arms,  128, g_szCurMapArms[GetClientTeam(client)-2]);
+    char skin[128], arms[128];
+    strcopy(skin, 128, g_szCurMapSkin[GetClientTeam(client)-2]);
+    strcopy(arms, 128, g_szCurMapArms[GetClientTeam(client)-2]);
 
-    Call_StartForward(g_fwdOnSpawnModel);
+    Call_StartForward(g_fwdOnSpawnSkin);
     Call_PushCell(client);
-    Call_PushStringEx(model, 128, SM_PARAM_STRING_UTF8|SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
+    Call_PushStringEx(skin, 128, SM_PARAM_STRING_UTF8|SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
     Call_PushCell(128);
     Call_PushStringEx(arms,  128, SM_PARAM_STRING_UTF8|SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
     Call_PushCell(128);
@@ -268,7 +268,7 @@ public Action Timer_SpawnPost(Handle timer, int userid)
 
     if(result == Plugin_Continue)
     {
-        SetEntityModel(client, g_szCurMapModel[GetClientTeam(client)-2]);
+        SetEntityModel(client, g_szCurMapSkin[GetClientTeam(client)-2]);
         SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[GetClientTeam(client)-2]);
 
         CreateTimer(0.02, Timer_ArmsFixed, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
@@ -277,13 +277,14 @@ public Action Timer_SpawnPost(Handle timer, int userid)
     }
     else if(result == Plugin_Changed)
     {
-        if(IsModelPrecached(model))
+        if(IsModelPrecached(skin))
         {
-            SetEntityModel(client, model);
+            SetEntityModel(client, skin);
         }
         else
         {
-            LogError(" [%s] is not precached", model);
+            LogError(" [%s] is not precached", skin);
+            SetEntityModel(client, g_szCurMapSkin[GetClientTeam(client)-2]);
         }
 
         if(IsModelPrecached(arms))
@@ -293,6 +294,7 @@ public Action Timer_SpawnPost(Handle timer, int userid)
         else
         {
             LogError(" [%s] is not precached", arms);
+            SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[GetClientTeam(client)-2]);
         }
 
         CreateTimer(0.02, Timer_ArmsFixed, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
@@ -308,7 +310,8 @@ public Action Timer_SpawnPost(Handle timer, int userid)
 public Action Timer_ArmsFixed(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
-    if(ClientIsAlive(client))
+
+    if(ClientIsAlive(client, true))
     {
         g_bArmsFixed[client] = true;
 
