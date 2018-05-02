@@ -61,7 +61,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public int IamNative(Handle plugin, int numParams)
 {
     int client = GetNativeCell(1);
-    if(!ClientIsValid(client, true))
+    if(client > MaxClients || client < MinClients)
     {
         ThrowNativeError(SP_ERROR_PARAM, "client %d is invalid.", client);
         return false;
