@@ -23,7 +23,7 @@
 #define PI_NAME "[CSGO] Arms Fix"
 #define PI_AUTH "Kyle"
 #define PI_DESC "Fix csgo glove overlap on custom arms"
-#define PI_VERS "1.3"
+#define PI_VERS "1.4"
 #define PI_URLS "https://kxnrl.com"
 
 public Plugin myinfo = 
@@ -40,6 +40,8 @@ public Plugin myinfo =
 
 static char g_szCurMapSkin[2][128];
 static char g_szCurMapArms[2][128];
+
+static char g_szSoRetarded[2][128];
 
 static Handle g_fwdOnSpawnSkin;
 static Handle g_fwdOnArmsFixed;
@@ -93,6 +95,9 @@ public void OnMapStart()
     
     strcopy(g_szCurMapArms[TEAM_TE], 128, "models/weapons/t_arms.mdl");
     strcopy(g_szCurMapArms[TEAM_CT], 128, "models/weapons/ct_arms.mdl");
+    
+    strcopy(g_szSoRetarded[TEAM_TE], 128, "models/player/custom_player/legacy/tm_pirate.mdl");
+    strcopy(g_szSoRetarded[TEAM_CT], 128, "models/player/custom_player/legacy/ctm_gign.mdl");
 
     LoadMapKV();
 
@@ -100,6 +105,8 @@ public void OnMapStart()
     PrecacheModel(g_szCurMapSkin[TEAM_CT], true);
     PrecacheModel(g_szCurMapArms[TEAM_TE], true);
     PrecacheModel(g_szCurMapArms[TEAM_CT], true);
+    PrecacheModel(g_szSoRetarded[TEAM_TE], true);
+    PrecacheModel(g_szSoRetarded[TEAM_CT], true);
 }
 
 public void OnMapEnd()
@@ -132,6 +139,12 @@ static void LoadMapKV()
         {
             Format(model, 128, "models/player/custom_player/legacy/%s.mdl", model);
             StringToLower(model, g_szCurMapSkin[TEAM_TE], 128);
+            
+            if(strcmp(g_szCurMapSkin[TEAM_TE], g_szSoRetarded[TEAM_TE]) == 0)
+            {
+                // CHANGE SKIN
+                strcopy(g_szSoRetarded[TEAM_TE], 128, "models/player/custom_player/legacy/tm_anarchist.mdl");
+            }
         }
     }
 
@@ -144,6 +157,12 @@ static void LoadMapKV()
         {
             Format(model, 128, "models/player/custom_player/legacy/%s.mdl", model);
             StringToLower(model, g_szCurMapSkin[TEAM_CT], 128);
+            
+            if(strcmp(g_szCurMapSkin[TEAM_CT], g_szSoRetarded[TEAM_CT]) == 0)
+            {
+                // CHANGE SKIN
+                strcopy(g_szSoRetarded[TEAM_CT], 128, "models/player/custom_player/legacy/ctm_fbi.mdl");
+            }
         }
     }
 
@@ -251,12 +270,14 @@ public Action Timer_SpawnPost(Handle timer, int userid)
     int client = GetClientOfUserId(userid);
     if(!ClientIsAlive(client, true))
         return Plugin_Stop;
+    
+    int iTeam = GetClientTeam(client);
 
     Action result = Plugin_Continue;
     
     char skin[128], arms[128];
-    strcopy(skin, 128, g_szCurMapSkin[GetClientTeam(client)-2]);
-    strcopy(arms, 128, g_szCurMapArms[GetClientTeam(client)-2]);
+    strcopy(skin, 128, g_szCurMapSkin[iTeam-2]);
+    strcopy(arms, 128, g_szCurMapArms[iTeam-2]);
 
     Call_StartForward(g_fwdOnSpawnSkin);
     Call_PushCell(client);
@@ -268,8 +289,8 @@ public Action Timer_SpawnPost(Handle timer, int userid)
 
     if(result == Plugin_Continue)
     {
-        SetEntityModel(client, g_szCurMapSkin[GetClientTeam(client)-2]);
-        SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[GetClientTeam(client)-2]);
+        SetEntityModel(client, g_szCurMapSkin[iTeam-2]);
+        SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[iTeam-2]);
 
         CreateTimer(0.02, Timer_ArmsFixed, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
 
@@ -277,14 +298,24 @@ public Action Timer_SpawnPost(Handle timer, int userid)
     }
     else if(result == Plugin_Changed)
     {
-        if(IsModelPrecached(skin))
+        // Fucking retarded bug...
+        // If we wanna change arms model only (without changing player skin), The gloves overlap may appear .
+        if(strcmp(skin, g_szCurMapSkin[iTeam-2]) == 0)
         {
-            SetEntityModel(client, skin);
+            // we need change player skin.
+            SetEntityModel(client, g_szSoRetarded[iTeam-2]);
         }
         else
         {
-            LogError(" [%s] is not precached", skin);
-            SetEntityModel(client, g_szCurMapSkin[GetClientTeam(client)-2]);
+            if(IsModelPrecached(skin))
+            {
+                SetEntityModel(client, skin);
+            }
+            else
+            {
+                LogError(" [%s] is not precached", skin);
+                SetEntityModel(client, g_szCurMapSkin[iTeam-2]);
+            }
         }
 
         if(IsModelPrecached(arms))
@@ -294,7 +325,7 @@ public Action Timer_SpawnPost(Handle timer, int userid)
         else
         {
             LogError(" [%s] is not precached", arms);
-            SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[GetClientTeam(client)-2]);
+            SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[iTeam-2]);
         }
 
         CreateTimer(0.02, Timer_ArmsFixed, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
