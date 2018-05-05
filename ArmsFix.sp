@@ -96,7 +96,7 @@ public void OnMapStart()
     strcopy(g_szCurMapArms[TEAM_TE], 128, "models/weapons/t_arms.mdl");
     strcopy(g_szCurMapArms[TEAM_CT], 128, "models/weapons/ct_arms.mdl");
     
-    strcopy(g_szSoRetarded[TEAM_TE], 128, "models/player/custom_player/legacy/tm_anarchist.mdl");
+    strcopy(g_szSoRetarded[TEAM_TE], 128, "models/player/custom_player/legacy/tm_pirate.mdl");
     strcopy(g_szSoRetarded[TEAM_CT], 128, "models/player/custom_player/legacy/ctm_gsg9.mdl");
 
     LoadMapKV();
@@ -143,7 +143,7 @@ static void LoadMapKV()
             if(strcmp(g_szCurMapSkin[TEAM_TE], g_szSoRetarded[TEAM_TE]) == 0)
             {
                 // CHANGE SKIN
-                strcopy(g_szSoRetarded[TEAM_TE], 128, "models/player/custom_player/legacy/tm_pirate.mdl");
+                strcopy(g_szSoRetarded[TEAM_TE], 128, "models/player/custom_player/legacy/tm_anarchist.mdl");
             }
         }
     }
