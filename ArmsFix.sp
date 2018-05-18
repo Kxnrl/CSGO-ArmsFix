@@ -23,7 +23,7 @@
 #define PI_NAME "[CSGO] Arms Fix"
 #define PI_AUTH "Kyle"
 #define PI_DESC "Fix csgo glove overlap on custom arms"
-#define PI_VERS "1.4"
+#define PI_VERS "1.5"
 #define PI_URLS "https://kxnrl.com"
 
 public Plugin myinfo = 
@@ -49,6 +49,8 @@ static Handle g_fwdOnArmsFixed;
 static bool g_bArmsFixed[MAXPLAYERS+1];
 
 static int g_iFileTime;
+
+static ConVar g_cvarForceArms;
 
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -82,6 +84,8 @@ public void OnPluginStart()
         SetFailState("Hook event \"player_spawn\" failed");
         return;
     }
+    
+    g_cvarForceArms = CreateConVar("armsfix_force_arms", "1", "Force change arms model if player has gloves.", _, true, 0.0, true, 1.0);
 
     HookEvent("player_death", Event_PlayerDeath, EventHookMode_Post);
     
@@ -290,7 +294,9 @@ public Action Timer_SpawnPost(Handle timer, int userid)
     if(result == Plugin_Continue)
     {
         SetEntityModel(client, g_szCurMapSkin[iTeam-2]);
-        SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[iTeam-2]);
+        
+        if(!ClientHasGloves(client))
+            SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[iTeam-2]);
 
         CreateTimer(0.02, Timer_ArmsFixed, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
 
@@ -320,12 +326,15 @@ public Action Timer_SpawnPost(Handle timer, int userid)
 
         if(IsModelPrecached(arms))
         {
-            SetEntPropString(client, Prop_Send, "m_szArmsModel", arms);
+            if(g_cvarForceArms.BoolValue || !ClientHasGloves(client))
+                SetEntPropString(client, Prop_Send, "m_szArmsModel", arms);
         }
         else
         {
             LogError(" [%s] is not precached", arms);
-            SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[iTeam-2]);
+
+            if(!ClientHasGloves(client))
+                SetEntPropString(client, Prop_Send, "m_szArmsModel", g_szCurMapArms[iTeam-2]);
         }
 
         CreateTimer(0.02, Timer_ArmsFixed, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
@@ -357,4 +366,9 @@ public Action Timer_ArmsFixed(Handle timer, int userid)
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
     g_bArmsFixed[GetClientOfUserId(event.GetInt("userid"))] = false;
+}
+
+bool ClientHasGloves(int client)
+{
+    return (GetEntPropEnt(client, Prop_Send, "m_hMyWearables") != -1);
 }
