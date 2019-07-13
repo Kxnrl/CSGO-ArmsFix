@@ -207,7 +207,7 @@ stock int GetPlayers(bool ingame = true, bool alive = false)
 
             total++;
         }
-    return players;
+    return total;
 }
 
 stock int GetPlayersEx(bool alive = false, int &tes, int &cts)
